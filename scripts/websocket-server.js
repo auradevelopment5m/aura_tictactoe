@@ -5,10 +5,15 @@
 // Nginx proxies /ws -> 3001, so Socket.IO path is /ws/socket.io
 // ============================================
 
-import "dotenv/config"
+import dotenv from "dotenv"
+import { existsSync } from "fs"
 import { createServer } from "http"
 import { Server } from "socket.io"
 import mysql from "mysql2/promise"
+
+// Load local env when running outside Next.js (Next loads .env.local automatically).
+// Prefer .env.local for dev, fallback to .env.
+dotenv.config({ path: existsSync(".env.local") ? ".env.local" : ".env" })
 
 const PORT = Number(process.env.PORT || process.env.WS_PORT || 3001)
 

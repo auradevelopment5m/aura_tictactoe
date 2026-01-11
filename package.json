@@ -4,9 +4,14 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "concurrently -k -n web,ws -c cyan,magenta pnpm:dev:web pnpm:dev:ws",
+    "dev:web": "next dev",
+    "dev:ws": "pnpm ws",
     "lint": "eslint .",
     "start": "next start",
+    "start:all": "concurrently -k -n web,ws -c cyan,magenta pnpm:start:web pnpm:start:ws",
+    "start:web": "next start",
+    "start:ws": "pnpm ws",
     "ws": "node scripts/websocket-server.js"
   },
   "repository": {
@@ -78,6 +83,7 @@
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.1",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.0.10",
     "postcss": "^8.5",

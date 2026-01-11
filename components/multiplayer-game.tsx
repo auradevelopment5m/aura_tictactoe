@@ -145,6 +145,19 @@ export function MultiplayerGame({ playerName, sessionId: joinSessionId, onBack, 
       setIsConnected(true)
     })
 
+    socket.on("connect_error", (err) => {
+      setIsConnected(false)
+      setIsWaiting(true)
+      toast({
+        title: "Socket Connection Failed",
+        description:
+          err instanceof Error
+            ? err.message
+            : "Could not connect to multiplayer server. Check NEXT_PUBLIC_SOCKET_URL and WS_CORS_ORIGIN.",
+        variant: "destructive",
+      })
+    })
+
     socket.on("disconnect", () => {
       setIsConnected(false)
       setIsWaiting(true)
