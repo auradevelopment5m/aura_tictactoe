@@ -373,6 +373,17 @@ export function Leaderboard({ onBack, isPCView = false, onRefresh }: Leaderboard
           />
           Support on Ko-fi
         </Button>
+
+        <p className="mt-3 text-xs text-muted-foreground">
+          Developed by{" "}
+          <button
+            type="button"
+            className="underline underline-offset-4 hover:text-foreground transition-colors"
+            onClick={() => window.open("https://ko-fi.com/zlexif", "_blank")}
+          >
+            zlexif
+          </button>
+        </p>
       </div>
     </div>
   )
