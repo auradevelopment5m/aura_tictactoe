@@ -129,6 +129,7 @@ export function MultiplayerGame({ playerName, sessionId: joinSessionId, onBack, 
     const socketUrl = getSocketUrl()
     const socket = io(socketUrl, {
       path: "/ws/socket.io",
+      transports: ["websocket"],
       query: {
         session: sessionId,
         player: playerName,
@@ -150,10 +151,11 @@ export function MultiplayerGame({ playerName, sessionId: joinSessionId, onBack, 
       setIsWaiting(true)
       toast({
         title: "Socket Connection Failed",
-        description:
+        description: `Server: ${socketUrl}\n${
           err instanceof Error
             ? err.message
-            : "Could not connect to multiplayer server. Check NEXT_PUBLIC_SOCKET_URL and WS_CORS_ORIGIN.",
+            : "Could not connect to multiplayer server. Check NEXT_PUBLIC_SOCKET_URL and WS_CORS_ORIGIN."
+        }`,
         variant: "destructive",
       })
     })
