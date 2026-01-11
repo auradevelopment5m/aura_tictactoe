@@ -5,11 +5,12 @@
 // Nginx proxies /ws -> 3001, so Socket.IO path is /ws/socket.io
 // ============================================
 
+import "dotenv/config"
 import { createServer } from "http"
 import { Server } from "socket.io"
 import mysql from "mysql2/promise"
 
-const PORT = Number(process.env.WS_PORT || 3001)
+const PORT = Number(process.env.PORT || process.env.WS_PORT || 3001)
 
 function generateSessionId() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -20,13 +21,57 @@ function generateSessionId() {
   return result
 }
 
-// Database configuration
-const dbConfig = {
-  host: "45.45.239.13",
-  port: 3306,
-  user: "auratictactoe_user",
-  password: "TicTacToeAura2010@",
-  database: "auratictactoe",
+function getDbConfig() {
+  const url = process.env.DATABASE_URL
+  const sslEnabled = String(process.env.DB_SSL || "").toLowerCase() === "true"
+  const sslCa = process.env.DB_SSL_CA
+
+  if (url) {
+    const parsed = new URL(url)
+    return {
+      host: parsed.hostname,
+      port: parsed.port ? Number(parsed.port) : 3306,
+      user: decodeURIComponent(parsed.username),
+      password: decodeURIComponent(parsed.password),
+      database: parsed.pathname.replace(/^\//, ""),
+      ...(sslEnabled
+        ? {
+            ssl: {
+              rejectUnauthorized: true,
+              ...(sslCa ? { ca: sslCa } : null),
+            },
+          }
+        : null),
+    }
+  }
+
+  const host = process.env.DB_HOST
+  const user = process.env.DB_USER
+  const password = process.env.DB_PASSWORD
+  const database = process.env.DB_NAME
+  const port = process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306
+
+  if (!host || !user || !password || !database) {
+    throw new Error(
+      "Missing database environment variables. Set DATABASE_URL or DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME.",
+    )
+  }
+
+  return {
+    host,
+    port,
+    user,
+    password,
+    database,
+    ...(sslEnabled
+      ? {
+          ssl: {
+            rejectUnauthorized: true,
+            ...(sslCa ? { ca: sslCa } : null),
+          },
+        }
+      : null),
+  }
 }
 
 // Game sessions storage
@@ -36,7 +81,7 @@ const sessions = new Map()
 let pool
 
 async function initDB() {
-  pool = mysql.createPool(dbConfig)
+  pool = mysql.createPool(getDbConfig())
   console.log("Database connected")
 }
 
@@ -179,7 +224,9 @@ const server = createServer((req, res) => {
 const io = new Server(server, {
   path: "/ws/socket.io",
   cors: {
-    origin: true,
+    origin: process.env.WS_CORS_ORIGIN
+      ? process.env.WS_CORS_ORIGIN.split(",").map((s) => s.trim()).filter(Boolean)
+      : true,
     credentials: true,
   },
 })
